@@ -48,7 +48,9 @@ npx -y @smithery/cli@latest install @Dhravya/apple-mcp --client cursor
 
 - Messages:
   - Send messages using the Apple Messages app
-  - Read out messages
+  - Read messages from conversations
+  - Schedule messages to be sent at a later time
+  - Check unread messages
 - Notes:
   - List notes
   - Search & read notes in Apple Notes app
@@ -65,8 +67,15 @@ npx -y @smithery/cli@latest install @Dhravya/apple-mcp --client cursor
   - Search for reminders by text
   - Create new reminders with optional due dates and notes
   - Open the Reminders app to view specific reminders
+- Calendar:
+  - Search calendar events with customizable date ranges
+  - List upcoming events
+  - Create new calendar events with details like title, location, and notes
+  - Open calendar events in the Calendar app
+- Web Search:
+  - Search the web using DuckDuckGo
+  - Retrieve and process content from search results
 
-- TODO: Search and open calendar events in Apple Calendar app
 - TODO: Search and open photos in Apple Photos app
 - TODO: Search and open music in Apple Music app
 
