@@ -65,8 +65,20 @@ npx -y @smithery/cli@latest install @Dhravya/apple-mcp --client cursor
   - Search for reminders by text
   - Create new reminders with optional due dates and notes
   - Open the Reminders app to view specific reminders
+- Calendar:
+  - Search calendar events with customizable date ranges
+  - List upcoming events
+  - Create new calendar events with details like title, location, and notes
+  - Open calendar events in the Calendar app
+- Web Search:
+  - Search the web using DuckDuckGo
+  - Retrieve and process content from search results
+- Maps:
+  - Search for locations and addresses
+  - Save locations to favorites
+  - Get directions between locations
+  - Drop pins on the map
 
-- TODO: Search and open calendar events in Apple Calendar app
 - TODO: Search and open photos in Apple Photos app
 - TODO: Search and open music in Apple Music app
 
