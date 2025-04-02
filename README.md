@@ -29,6 +29,14 @@ Here's a step-by-step video about how to set this up, with a demo. - https://x.c
 
 </details>
 
+### Installing via Smithery
+
+To install Apple MCP Tools for Claude Desktop automatically via [Smithery](https://smithery.ai/server/@Dhravya/apple-mcp):
+
+```bash
+npx -y @smithery/cli install @Dhravya/apple-mcp --client claude
+```
+
 #### Quick install
 
 To install Apple MCP for Claude Desktop automatically via [Smithery](https://smithery.ai/server/@Dhravya/apple-mcp):
