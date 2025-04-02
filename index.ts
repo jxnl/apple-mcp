@@ -27,6 +27,7 @@ let mail: typeof import('./utils/mail').default | null = null;
 let reminders: typeof import('./utils/reminders').default | null = null;
 let webSearch: typeof import('./utils/webSearch').default | null = null;
 let calendar: typeof import('./utils/calendar').default | null = null;
+let maps: typeof import('./utils/maps').default | null = null;
 
 // Type map for module names to their types
 type ModuleMap = {
@@ -37,10 +38,11 @@ type ModuleMap = {
   reminders: typeof import('./utils/reminders').default;
   webSearch: typeof import('./utils/webSearch').default;
   calendar: typeof import('./utils/calendar').default;
+  maps: typeof import('./utils/maps').default;
 };
 
 // Helper function for lazy module loading
-async function loadModule<T extends 'contacts' | 'notes' | 'message' | 'mail' | 'reminders' | 'webSearch' | 'calendar'>(moduleName: T): Promise<ModuleMap[T]> {
+async function loadModule<T extends 'contacts' | 'notes' | 'message' | 'mail' | 'reminders' | 'webSearch' | 'calendar' | 'maps'>(moduleName: T): Promise<ModuleMap[T]> {
   if (safeModeFallback) {
     console.error(`Loading ${moduleName} module on demand (safe mode)...`);
   }
@@ -68,6 +70,9 @@ async function loadModule<T extends 'contacts' | 'notes' | 'message' | 'mail' | 
       case 'calendar':
         if (!calendar) calendar = (await import('./utils/calendar')).default;
         return calendar as ModuleMap[T];
+      case 'maps':
+        if (!maps) maps = (await import('./utils/maps')).default;
+        return maps as ModuleMap[T];
       default:
         throw new Error(`Unknown module: ${moduleName}`);
     }
@@ -123,6 +128,9 @@ async function attemptEagerLoading() {
     calendar = (await import('./utils/calendar')).default;
     console.error("- Calendar module loaded successfully");
     
+    maps = (await import('./utils/maps')).default;
+    console.error("- Maps module loaded successfully");
+    
     // If we get here, clear the timeout and proceed with eager loading
     if (loadingTimeout) {
       clearTimeout(loadingTimeout);
@@ -153,6 +161,7 @@ async function attemptEagerLoading() {
     reminders = null;
     webSearch = null;
     calendar = null;
+    maps = null;
     
     // Initialize the server in safe mode
     initServer();
@@ -850,6 +859,104 @@ end tell`;
             };
           }
         }
+        
+        case "maps": {
+          if (!isMapsArgs(args)) {
+            throw new Error("Invalid arguments for maps tool");
+          }
+          
+          try {
+            const mapsModule = await loadModule("maps");
+            const { operation } = args;
+            
+            switch (operation) {
+              case "search": {
+                const { query, limit } = args;
+                if (!query) {
+                  throw new Error("Search query is required for search operation");
+                }
+                
+                const result = await mapsModule.searchLocations(query, limit);
+                
+                return {
+                  content: [{
+                    type: "text",
+                    text: result.success ? 
+                      `${result.message}\n\n${result.locations.map(location => 
+                        `Name: ${location.name}\n` +
+                        `Address: ${location.address}\n` +
+                        `${location.latitude && location.longitude ? `Coordinates: ${location.latitude}, ${location.longitude}\n` : ''}`
+                      ).join("\n\n")}` : 
+                      `${result.message}`
+                  }],
+                  isError: !result.success
+                };
+              }
+              
+              case "save": {
+                const { name, address } = args;
+                if (!name || !address) {
+                  throw new Error("Name and address are required for save operation");
+                }
+                
+                const result = await mapsModule.saveLocation(name, address);
+                
+                return {
+                  content: [{
+                    type: "text",
+                    text: result.message
+                  }],
+                  isError: !result.success
+                };
+              }
+              
+              case "pin": {
+                const { name, address } = args;
+                if (!name || !address) {
+                  throw new Error("Name and address are required for pin operation");
+                }
+                
+                const result = await mapsModule.dropPin(name, address);
+                
+                return {
+                  content: [{
+                    type: "text",
+                    text: result.message
+                  }],
+                  isError: !result.success
+                };
+              }
+              
+              case "directions": {
+                const { fromAddress, toAddress, transportType } = args;
+                if (!fromAddress || !toAddress) {
+                  throw new Error("From and to addresses are required for directions operation");
+                }
+                
+                const result = await mapsModule.getDirections(fromAddress, toAddress, transportType as 'driving' | 'walking' | 'transit');
+                
+                return {
+                  content: [{
+                    type: "text",
+                    text: result.message
+                  }],
+                  isError: !result.success
+                };
+              }
+              
+              default:
+                throw new Error(`Unknown maps operation: ${operation}`);
+            }
+          } catch (error) {
+            return {
+              content: [{
+                type: "text",
+                text: `Error in maps tool: ${error instanceof Error ? error.message : String(error)}`
+              }],
+              isError: true
+            };
+          }
+        }
 
         default:
           return {
@@ -1106,6 +1213,61 @@ function isCalendarArgs(args: unknown): args is {
     };
     
     if (typeof title !== "string" || typeof startDate !== "string" || typeof endDate !== "string") {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function isMapsArgs(args: unknown): args is {
+  operation: "search" | "save" | "directions" | "pin";
+  query?: string;
+  limit?: number;
+  name?: string;
+  address?: string;
+  fromAddress?: string;
+  toAddress?: string;
+  transportType?: string;
+} {
+  if (typeof args !== "object" || args === null) {
+    return false;
+  }
+
+  const { operation } = args as { operation?: unknown };
+  if (typeof operation !== "string") {
+    return false;
+  }
+
+  if (!["search", "save", "directions", "pin"].includes(operation)) {
+    return false;
+  }
+
+  // Check that required parameters are present for each operation
+  if (operation === "search") {
+    const { query } = args as { query?: unknown };
+    if (typeof query !== "string" || query === "") {
+      return false;
+    }
+  }
+
+  if (operation === "save" || operation === "pin") {
+    const { name, address } = args as { name?: unknown; address?: unknown };
+    if (typeof name !== "string" || name === "" || typeof address !== "string" || address === "") {
+      return false;
+    }
+  }
+
+  if (operation === "directions") {
+    const { fromAddress, toAddress } = args as { fromAddress?: unknown; toAddress?: unknown };
+    if (typeof fromAddress !== "string" || fromAddress === "" || typeof toAddress !== "string" || toAddress === "") {
+      return false;
+    }
+
+    // Check transportType if provided
+    const { transportType } = args as { transportType?: unknown };
+    if (transportType !== undefined && 
+        (typeof transportType !== "string" || !["driving", "walking", "transit"].includes(transportType))) {
       return false;
     }
   }

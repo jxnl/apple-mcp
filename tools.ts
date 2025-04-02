@@ -238,6 +238,51 @@ const CALENDAR_TOOL: Tool = {
   }
 };
   
-const tools = [CONTACTS_TOOL, NOTES_TOOL, MESSAGES_TOOL, MAIL_TOOL, REMINDERS_TOOL, WEB_SEARCH_TOOL, CALENDAR_TOOL];
+const MAPS_TOOL: Tool = {
+  name: "maps",
+  description: "Search locations, save favorites, and get directions using Apple Maps",
+  inputSchema: {
+    type: "object",
+    properties: {
+      operation: {
+        type: "string",
+        description: "Operation to perform: 'search', 'save', 'directions', or 'pin'",
+        enum: ["search", "save", "directions", "pin"]
+      },
+      query: {
+        type: "string",
+        description: "Search query for locations (required for search operation)"
+      },
+      limit: {
+        type: "number",
+        description: "Maximum number of results to return (optional for search operation, default is 5)"
+      },
+      name: {
+        type: "string",
+        description: "Name of the location (required for save and pin operations)"
+      },
+      address: {
+        type: "string",
+        description: "Address of the location (required for save and pin operations)"
+      },
+      fromAddress: {
+        type: "string",
+        description: "Starting address for directions (required for directions operation)"
+      },
+      toAddress: {
+        type: "string",
+        description: "Destination address for directions (required for directions operation)"
+      },
+      transportType: {
+        type: "string",
+        description: "Type of transport to use for directions (optional, default is 'driving')",
+        enum: ["driving", "walking", "transit"]
+      }
+    },
+    required: ["operation"]
+  }
+};
+
+const tools = [CONTACTS_TOOL, NOTES_TOOL, MESSAGES_TOOL, MAIL_TOOL, REMINDERS_TOOL, WEB_SEARCH_TOOL, CALENDAR_TOOL, MAPS_TOOL];
 
 export default tools;
