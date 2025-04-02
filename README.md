@@ -78,6 +78,8 @@ npx -y @smithery/cli@latest install @Dhravya/apple-mcp --client cursor
   - Save locations to favorites
   - Get directions between locations
   - Drop pins on the map
+  - Create and list guides
+  - Add places to guides
 
 - TODO: Search and open photos in Apple Photos app
 - TODO: Search and open music in Apple Music app

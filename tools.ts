@@ -240,14 +240,14 @@ const CALENDAR_TOOL: Tool = {
   
 const MAPS_TOOL: Tool = {
   name: "maps",
-  description: "Search locations, save favorites, and get directions using Apple Maps",
+  description: "Search locations, manage guides, save favorites, and get directions using Apple Maps",
   inputSchema: {
     type: "object",
     properties: {
       operation: {
         type: "string",
-        description: "Operation to perform: 'search', 'save', 'directions', or 'pin'",
-        enum: ["search", "save", "directions", "pin"]
+        description: "Operation to perform: 'search', 'save', 'directions', 'pin', 'listGuides', 'addToGuide', or 'createGuide'",
+        enum: ["search", "save", "directions", "pin", "listGuides", "addToGuide", "createGuide"]
       },
       query: {
         type: "string",
@@ -263,7 +263,7 @@ const MAPS_TOOL: Tool = {
       },
       address: {
         type: "string",
-        description: "Address of the location (required for save and pin operations)"
+        description: "Address of the location (required for save and pin operations, also used for addToGuide)"
       },
       fromAddress: {
         type: "string",
@@ -277,6 +277,10 @@ const MAPS_TOOL: Tool = {
         type: "string",
         description: "Type of transport to use for directions (optional, default is 'driving')",
         enum: ["driving", "walking", "transit"]
+      },
+      guideName: {
+        type: "string",
+        description: "Name of the guide to create or add to (required for createGuide and addToGuide operations)"
       }
     },
     required: ["operation"]

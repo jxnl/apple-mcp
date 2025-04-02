@@ -944,6 +944,52 @@ end tell`;
                 };
               }
               
+              case "listGuides": {
+                const result = await mapsModule.listGuides();
+                
+                return {
+                  content: [{
+                    type: "text",
+                    text: result.message
+                  }],
+                  isError: !result.success
+                };
+              }
+              
+              case "addToGuide": {
+                const { address, guideName } = args;
+                if (!address || !guideName) {
+                  throw new Error("Address and guideName are required for addToGuide operation");
+                }
+                
+                const result = await mapsModule.addToGuide(address, guideName);
+                
+                return {
+                  content: [{
+                    type: "text",
+                    text: result.message
+                  }],
+                  isError: !result.success
+                };
+              }
+              
+              case "createGuide": {
+                const { guideName } = args;
+                if (!guideName) {
+                  throw new Error("Guide name is required for createGuide operation");
+                }
+                
+                const result = await mapsModule.createGuide(guideName);
+                
+                return {
+                  content: [{
+                    type: "text",
+                    text: result.message
+                  }],
+                  isError: !result.success
+                };
+              }
+              
               default:
                 throw new Error(`Unknown maps operation: ${operation}`);
             }
@@ -1221,7 +1267,7 @@ function isCalendarArgs(args: unknown): args is {
 }
 
 function isMapsArgs(args: unknown): args is {
-  operation: "search" | "save" | "directions" | "pin";
+  operation: "search" | "save" | "directions" | "pin" | "listGuides" | "addToGuide" | "createGuide";
   query?: string;
   limit?: number;
   name?: string;
@@ -1229,6 +1275,7 @@ function isMapsArgs(args: unknown): args is {
   fromAddress?: string;
   toAddress?: string;
   transportType?: string;
+  guideName?: string;
 } {
   if (typeof args !== "object" || args === null) {
     return false;
@@ -1239,7 +1286,7 @@ function isMapsArgs(args: unknown): args is {
     return false;
   }
 
-  if (!["search", "save", "directions", "pin"].includes(operation)) {
+  if (!["search", "save", "directions", "pin", "listGuides", "addToGuide", "createGuide"].includes(operation)) {
     return false;
   }
 
@@ -1268,6 +1315,20 @@ function isMapsArgs(args: unknown): args is {
     const { transportType } = args as { transportType?: unknown };
     if (transportType !== undefined && 
         (typeof transportType !== "string" || !["driving", "walking", "transit"].includes(transportType))) {
+      return false;
+    }
+  }
+  
+  if (operation === "createGuide") {
+    const { guideName } = args as { guideName?: unknown };
+    if (typeof guideName !== "string" || guideName === "") {
+      return false;
+    }
+  }
+  
+  if (operation === "addToGuide") {
+    const { address, guideName } = args as { address?: unknown; guideName?: unknown };
+    if (typeof address !== "string" || address === "" || typeof guideName !== "string" || guideName === "") {
       return false;
     }
   }

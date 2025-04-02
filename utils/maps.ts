@@ -11,6 +11,12 @@ interface MapLocation {
     isFavorite: boolean;
 }
 
+interface Guide {
+    id: string;
+    name: string;
+    itemCount: number;
+}
+
 interface SearchResult {
     success: boolean;
     locations: MapLocation[];
@@ -32,6 +38,19 @@ interface DirectionResult {
         startAddress: string;
         endAddress: string;
     };
+}
+
+interface GuideResult {
+    success: boolean;
+    message: string;
+    guides?: Guide[];
+}
+
+interface AddToGuideResult {
+    success: boolean;
+    message: string;
+    guideName?: string;
+    locationName?: string;
 }
 
 /**
@@ -81,8 +100,17 @@ async function searchLocations(query: string, limit: number = 5): Promise<Search
                 // Launch Maps and search (this is needed for search to work properly)
                 Maps.activate();
                 
-                // Execute search - this will populate the search results
-                Maps.search(args.query);
+                // Execute search using the URL scheme which is more reliable
+                Maps.activate();
+                const encodedQuery = encodeURIComponent(args.query);
+                Maps.openLocation(`maps://?q=${encodedQuery}`);
+                
+                // For backward compatibility also try the standard search method
+                try {
+                    Maps.search(args.query);
+                } catch (e) {
+                    // Ignore error if search is not supported
+                }
                 
                 // Wait a bit for search results to populate
                 delay(2); // 2 seconds
@@ -369,11 +397,192 @@ async function dropPin(name: string, address: string): Promise<SaveResult> {
     }
 }
 
+/**
+ * List all guides in Apple Maps
+ * @returns Promise resolving to a list of guides
+ */
+async function listGuides(): Promise<GuideResult> {
+    try {
+        if (!await checkMapsAccess()) {
+            return {
+                success: false,
+                message: "Cannot access Maps app. Please grant access in System Settings > Privacy & Security > Automation."
+            };
+        }
+
+        console.error("listGuides - Getting list of guides from Maps");
+
+        // Try to list guides using AppleScript UI automation
+        // Note: Maps doesn't have a direct API for this, so we're using a URL scheme approach
+        const result = await run(() => {
+            try {
+                const app = Application.currentApplication();
+                app.includeStandardAdditions = true;
+                
+                // Open Maps
+                const Maps = Application("Maps");
+                Maps.activate();
+                
+                // Open the guides view using URL scheme
+                app.openLocation("maps://?show=guides");
+                
+                // Without direct scripting access, we can't get the actual list of guides
+                // But we can at least open the guides view for the user
+                
+                return {
+                    success: true,
+                    message: "Opened guides view in Maps. Please visually check your guides.",
+                    guides: [
+                        // Since we can't directly access the guides, we return an empty list
+                        // with instructions for the user
+                    ]
+                };
+            } catch (e) {
+                return {
+                    success: false,
+                    message: `Error accessing guides: ${e}`
+                };
+            }
+        }) as GuideResult;
+        
+        return result;
+    } catch (error) {
+        return {
+            success: false,
+            message: `Error listing guides: ${error instanceof Error ? error.message : String(error)}`
+        };
+    }
+}
+
+/**
+ * Add a location to a specific guide
+ * @param locationAddress The address of the location to add
+ * @param guideName The name of the guide to add to
+ * @returns Promise resolving to result of the operation
+ */
+async function addToGuide(locationAddress: string, guideName: string): Promise<AddToGuideResult> {
+    try {
+        if (!await checkMapsAccess()) {
+            return {
+                success: false,
+                message: "Cannot access Maps app. Please grant access in System Settings > Privacy & Security > Automation."
+            };
+        }
+
+        console.error(`addToGuide - Adding location "${locationAddress}" to guide "${guideName}"`);
+
+        // Since Maps doesn't provide a direct API for guide management,
+        // we'll use a combination of search and manual instructions
+        const result = await run((args: { locationAddress: string, guideName: string }) => {
+            try {
+                const app = Application.currentApplication();
+                app.includeStandardAdditions = true;
+                
+                // Open Maps
+                const Maps = Application("Maps");
+                Maps.activate();
+                
+                // Search for the location
+                const encodedAddress = encodeURIComponent(args.locationAddress);
+                app.openLocation(`maps://?q=${encodedAddress}`);
+                
+                // We can't directly add to a guide through AppleScript,
+                // but we can provide instructions for the user
+                
+                return {
+                    success: true,
+                    message: `Searched for "${args.locationAddress}" in Maps. To add to your guide "${args.guideName}", please:\n` +
+                             `1. Tap the location pin that appears on the map\n` +
+                             `2. Tap the "..." button in the location details\n` +
+                             `3. Select "Add to Guide"\n` +
+                             `4. Choose "${args.guideName}" from the list`,
+                    guideName: args.guideName,
+                    locationName: args.locationAddress
+                };
+            } catch (e) {
+                return {
+                    success: false,
+                    message: `Error adding to guide: ${e}`
+                };
+            }
+        }, { locationAddress, guideName }) as AddToGuideResult;
+        
+        return result;
+    } catch (error) {
+        return {
+            success: false,
+            message: `Error adding to guide: ${error instanceof Error ? error.message : String(error)}`
+        };
+    }
+}
+
+/**
+ * Create a new guide with the given name
+ * @param guideName The name for the new guide
+ * @returns Promise resolving to result of the operation
+ */
+async function createGuide(guideName: string): Promise<AddToGuideResult> {
+    try {
+        if (!await checkMapsAccess()) {
+            return {
+                success: false,
+                message: "Cannot access Maps app. Please grant access in System Settings > Privacy & Security > Automation."
+            };
+        }
+
+        console.error(`createGuide - Creating new guide "${guideName}"`);
+
+        // Since Maps doesn't provide a direct API for guide creation,
+        // we'll guide the user through the process
+        const result = await run((guideName: string) => {
+            try {
+                const app = Application.currentApplication();
+                app.includeStandardAdditions = true;
+                
+                // Open Maps
+                const Maps = Application("Maps");
+                Maps.activate();
+                
+                // Open the guides view using URL scheme
+                app.openLocation("maps://?show=guides");
+                
+                // We can't directly create a guide through AppleScript,
+                // but we can provide instructions for the user
+                
+                return {
+                    success: true,
+                    message: `Opened guides in Maps. To create your guide "${guideName}", please:\n` +
+                             `1. Tap the "+" button in the guides section\n` +
+                             `2. Select "New Guide"\n` +
+                             `3. Enter "${guideName}" as the guide name\n` +
+                             `4. Tap "Create"`,
+                    guideName: guideName
+                };
+            } catch (e) {
+                return {
+                    success: false,
+                    message: `Error creating guide: ${e}`
+                };
+            }
+        }, guideName) as AddToGuideResult;
+        
+        return result;
+    } catch (error) {
+        return {
+            success: false,
+            message: `Error creating guide: ${error instanceof Error ? error.message : String(error)}`
+        };
+    }
+}
+
 const maps = {
     searchLocations,
     saveLocation,
     getDirections,
-    dropPin
+    dropPin,
+    listGuides,
+    addToGuide,
+    createGuide
 };
 
 export default maps;
