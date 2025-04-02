@@ -240,47 +240,47 @@ const CALENDAR_TOOL: Tool = {
   
 const MAPS_TOOL: Tool = {
   name: "maps",
-  description: "Search locations, manage guides, save favorites, and get directions using Apple Maps. Each operation requires specific parameters as detailed below.",
+  description: "Search locations, manage guides, save favorites, and get directions using Apple Maps",
   inputSchema: {
     type: "object",
     properties: {
       operation: {
         type: "string",
-        description: "Specific operation to perform. Choose from: search, save, directions, pin, listGuides, addToGuide, or createGuide.",
+        description: "Operation to perform with Maps",
         enum: ["search", "save", "directions", "pin", "listGuides", "addToGuide", "createGuide"]
       },
       query: {
         type: "string",
-        description: "REQUIRED FOR: search - The search query for finding locations (e.g., 'Barbican Centre London')"
+        description: "Search query for locations (required for search)"
       },
       limit: {
         type: "number",
-        description: "OPTIONAL FOR: search - Maximum number of results to return (default: 5)"
+        description: "Maximum number of results to return (optional for search)"
       },
       name: {
         type: "string",
-        description: "REQUIRED FOR: save, pin - Descriptive name for the location (e.g., 'My Favorite Restaurant')"
+        description: "Name of the location (required for save and pin)"
       },
       address: {
         type: "string",
-        description: "REQUIRED FOR: save, pin, addToGuide - Full address or location description (e.g., 'Barbican Centre, Silk Street, London')"
+        description: "Address of the location (required for save, pin, addToGuide)"
       },
       fromAddress: {
         type: "string",
-        description: "REQUIRED FOR: directions - Starting address for the route (e.g., 'Trafalgar Square, London')"
+        description: "Starting address for directions (required for directions)"
       },
       toAddress: {
         type: "string",
-        description: "REQUIRED FOR: directions - Destination address for the route (e.g., 'Barbican Centre, London')"
+        description: "Destination address for directions (required for directions)"
       },
       transportType: {
         type: "string",
-        description: "OPTIONAL FOR: directions - Travel method to use (default: 'driving')",
+        description: "Type of transport to use (optional for directions)",
         enum: ["driving", "walking", "transit"]
       },
       guideName: {
         type: "string",
-        description: "REQUIRED FOR: createGuide, addToGuide - Name of the guide to create or add to (e.g., 'London Favorites')"
+        description: "Name of the guide (required for createGuide and addToGuide)"
       }
     },
     required: ["operation"]

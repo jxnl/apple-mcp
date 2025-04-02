@@ -431,14 +431,8 @@ async function listGuides(): Promise<GuideResult> {
                 
                 return {
                     success: true,
-                    message: "GUIDES VIEW OPENED: The Maps app is now showing your guides collection.\n\n" +
-                             "TIP: You can create a new guide by clicking the '+' button in the Guides section.\n\n" +
-                             "To create a guide with apple-mcp, use:\n" +
-                             "mcp__maps({ operation: \"createGuide\", guideName: \"My New Guide\" })",
-                    guides: [
-                        // Since we can't directly access the guides, we return an empty list
-                        // with instructions for the user
-                    ]
+                    message: "Opened guides view in Maps",
+                    guides: []
                 };
             } catch (e) {
                 return {
@@ -494,14 +488,7 @@ async function addToGuide(locationAddress: string, guideName: string): Promise<A
                 
                 return {
                     success: true,
-                    message: `ADD TO GUIDE: Location "${args.locationAddress}" is now shown in Maps.\n\n` +
-                             `To add this location to your guide "${args.guideName}", please:\n` +
-                             `1. Click on the location pin that appears on the map\n` +
-                             `2. Click the "..." (more) button in the location details\n` +
-                             `3. Select "Add to Guide"\n` +
-                             `4. Choose "${args.guideName}" from the list\n\n` +
-                             `NOTE: If "${args.guideName}" doesn't exist yet, create it first with:\n` +
-                             `mcp__maps({ operation: "createGuide", guideName: "${args.guideName}" })`,
+                    message: `Showing "${args.locationAddress}" in Maps. Add to "${args.guideName}" guide by clicking location pin, "..." button, then "Add to Guide".`,
                     guideName: args.guideName,
                     locationName: args.locationAddress
                 };
@@ -557,14 +544,7 @@ async function createGuide(guideName: string): Promise<AddToGuideResult> {
                 
                 return {
                     success: true,
-                    message: `CREATE GUIDE: Maps is now showing the guides view.\n\n` +
-                             `To create your new guide "${guideName}", please:\n` +
-                             `1. Click the "+" button in the guides section\n` +
-                             `2. Select "New Guide"\n` +
-                             `3. Enter "${guideName}" as the guide name\n` +
-                             `4. Click "Create"\n\n` +
-                             `NEXT STEPS: To add a location to this guide after creating it, use:\n` +
-                             `mcp__maps({ operation: "addToGuide", address: "Location Name", guideName: "${guideName}" })`,
+                    message: `Opened guides view to create new guide "${guideName}". Click "+" button and select "New Guide".`,
                     guideName: guideName
                 };
             } catch (e) {
